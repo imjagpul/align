@@ -24,7 +24,7 @@ AlignmentResult = namedtuple(
 
 
 def aligner(seqj, seqi, method='global', gap_open=-7, gap_extend=-7,
-            gap_double=-7, matrix=BLOSUM62, max_hits=1):
+            gap_double=-7, matrix=BLOSUM62, max_hits=1, GAP_CHAR='-'):
     '''Calculates the alignment of two sequences.
 
     The supported 'methods' are:
@@ -60,7 +60,7 @@ def aligner(seqj, seqi, method='global', gap_open=-7, gap_extend=-7,
     '''
     assert max_hits is None or max_hits > 0
     NONE, LEFT, UP, DIAG = range(4)  # NONE is 0
-    GAP_CHAR = ord('-') if not IS_PY2 else '-'
+
     max_j = len(seqj)
     max_i = len(seqi)
 
@@ -70,9 +70,6 @@ def aligner(seqj, seqi, method='global', gap_open=-7, gap_extend=-7,
         max_i, max_j = max_j, max_i
     else:
         flip = 0
-
-    seqi = seqi.encode() if not isinstance(seqi, bytes) else seqi
-    seqj = seqj.encode() if not isinstance(seqj, bytes) else seqj
 
     F = np.zeros((max_i + 1, max_j + 1), dtype=np.float32)
     I = np.ndarray((max_i + 1, max_j + 1), dtype=np.float32)
@@ -250,10 +247,8 @@ def aligner(seqj, seqi, method='global', gap_open=-7, gap_extend=-7,
                 raise Exception('wtf!')
             p = pointer[i, j]
 
-        align_i = bytes(align_i[::-1]) \
-            if not IS_PY2 else ''.join(align_i[::-1])
-        align_j = bytes(align_j[::-1]) \
-            if not IS_PY2 else ''.join(align_j[::-1])
+        align_i = ''.join(align_i[::-1])
+        align_j = ''.join(align_j[::-1])        
 
         aln = (AlignmentResult(align_i, align_j, i, j, end_i, end_j,
                                n_gaps_i, n_gaps_j, n_mmatch, score)
