@@ -2,42 +2,40 @@
 Align: polite, proper sequence alignment
 ++++++++++++++++++++++++++++++++++++++++
 
-    :Authors: Marcin Cieślik, Brent Pedersen (brentp), Wibowo Arindrarto (bow)
-    :Email: (marcin), bpederse@gmail.com, bow@bow.web.id
-    :License: BSD
-
-.. contents ::
+About fork
+============
+A fork of brentp/align that works with aligning sequences that contains non-ascii characters (useful for usage outside Bioinformatics).
 
 
-About
-=====
-Various packages implement sequence alignment algorithms with various levels of
-success. This package is an attempt to handle the sequence alignment properly,
-including edge-cases.
+Example
+========
+
+Usage example ::
+
+    from align import aligner
+
+    # simple equivalence matrix (every character is only matched to itself and nothing else)
+    class SimpleMatrixInner:
+        def __getitem__(self, y):
+            if self.x == y:
+                return +10
+            else:
+                return -10
+
+    class MatrixWrapper:
+        def __init__(self, cls): 
+            self.inner = cls()
+
+        def __getitem__(self, x):
+            self.inner.x=x
+            return self.inner
 
 
-Usage
-=====
+    print(aligner('幸福的家庭都是相似的，不幸的家庭各有各的不幸。','家庭相似', method= 'global', matrix=MatrixWrapper(SimpleMatrixInner)))
+    # outputs: seq2 = '---家庭--相似--------------'
 
-usage will change. currently ::
+    print(aligner('幸福的家庭都是相似的，不幸的家庭各有各的不幸。','家庭相似', method= 'glocal', matrix=MatrixWrapper(SimpleMatrixInner), GAP_CHAR='#'))
+    # outputs: seq2 = '家庭##相似'
 
-    >>> from align.matrix import DNAFULL
-    >>> from align import aligner
-
-    >>> aligner('WW','WEW', method= 'global')
-    ('W-W', 'WEW')
-
-    >>> aligner('WW','WEWWEW', method= 'glocal')
-    ('WW', 'WW')
-
-
-    >>> aligner('TAATTC', 'TAAT', method='global', matrix=DNAFULL, gap_open=-10, gap_extend=-1)
-    ('TAATTC', 'TAAT--')
-
-    >>> aligner('PYNCHAN', 'YNCH', method='local')
-    ('YNCH', 'YNCH')
-
-    >>> a, b = aligner('AAAAAAAAAAAAACCTGCGCCCCAAAAAAAAAAAAAAAAAAAA', 'CCTGCGCACCCC', method='global_cfe')
-    >>> print "%s\n%s" % (a, b)
-    AAAAAAAAAAAAACCTGCGC-CCCAAAAAAAAAAAAAAAAAAAA
-    -------------CCTGCGCACCCC-------------------
+    print(aligner('Все счастливые семьи похожи друг на друга, каждая несчастливая семья несчастлива по-своему.', 'несчастлива', method='global', matrix=MatrixWrapper(SimpleMatrixInner)))
+    # outputs: seq2 = '---------------------------------н-----------------есчастлива------------------------------'
